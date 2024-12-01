@@ -7,11 +7,11 @@ import android.util.Log;
 public class RefreshRateUtils {
 
     private static final String TAG = "RefreshRateManager";
-    private static final boolean DEBUG = true;
+    private static final boolean DEBUG = false;
 
     private static final int DEFAULT_MIN_REFRESH_RATE = 60;
     private static final int DEFAULT_MAX_REFRESH_RATE = 144;
-    private static final int PEN_DETACHED_REFRESH_RATE = 120;
+    private static final int PEN_MAX_REFRESH_RATE = 120;
 
     private final Context mContext;
 
@@ -19,16 +19,16 @@ public class RefreshRateUtils {
         mContext = context;
     }
 
-    // Sets refresh rate for pen detached mode (60-120Hz).
+    // Sets refresh rates for pen mode (60-120Hz).
     public void setPenModeRefreshRate() {
-        if (DEBUG) Log.d(TAG, "setPenModeRefreshRate: Setting refresh rate to 60-120Hz for pen detached mode");
+        if (DEBUG) Log.d(TAG, "setPenModeRefreshRate: Setting refresh rate to 60-120Hz for pen mode");
         setMinRefreshRate(DEFAULT_MIN_REFRESH_RATE);
-        setPeakRefreshRate(PEN_DETACHED_REFRESH_RATE);
+        setPeakRefreshRate(PEN_MAX_REFRESH_RATE);
     }
 
-    // Sets refresh rate for pen docked mode (60-144Hz).
+    // Resets refresh rates to default mode (60-144Hz).
     public void setDefaultRefreshRate() {
-        if (DEBUG) Log.d(TAG, "setHighRefreshRate: Setting refresh rate to 60-144Hz for pen docked mode");
+        if (DEBUG) Log.d(TAG, "setDefaultRefreshRate: Restoring refresh rate to 60-144Hz");
         setMinRefreshRate(DEFAULT_MIN_REFRESH_RATE);
         setPeakRefreshRate(DEFAULT_MAX_REFRESH_RATE);
     }

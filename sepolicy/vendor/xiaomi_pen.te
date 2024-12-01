@@ -6,5 +6,3 @@ type xiaomi_pen_exec, exec_type, vendor_file_type, file_type;
 init_daemon_domain(xiaomi_pen)
 
 allow xiaomi_pen xiaomi_touch_device:chr_file { ioctl open read write };
-
-r_dir_file(system_app vendor_sysfs_battery_supply)
