@@ -10,13 +10,15 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.hardware.input.InputManager;
 import android.hardware.input.InputManager.InputDeviceListener;
-import android.os.FileObserver;
 import android.os.SystemProperties;
 import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.InputDevice;
 
-import org.lineageos.xiaomiperipheralmanager.FileUtils;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
+import android.os.FileObserver;
 
 public class PenUtils {
 
@@ -48,41 +50,41 @@ public class PenUtils {
         refreshPenState();
     }
 
+    // Enable pen mode and update refresh rates
     public static void enablePenMode() {
         if (DEBUG) Log.d(TAG, "enablePenMode: Activating Pen Mode");
         SystemProperties.set("persist.vendor.parts.pen", "18");
         refreshPenState();
     }
 
+    // Disable pen mode and restore default refresh rates
     public static void disablePenMode() {
         if (DEBUG) Log.d(TAG, "disablePenMode: Deactivating Pen Mode");
         SystemProperties.set("persist.vendor.parts.pen", "2");
         refreshPenState();
     }
 
+    // Refresh the pen state based on detection, docking, and stylus_key preference
     private static void refreshPenState() {
         boolean isStylusEnabled = mPreferences.getBoolean(STYLUS_KEY, false);
         boolean isPenDetected = isStylusEnabled || isDeviceXiaomiPen();
         boolean isPenDocked = isPenDocked();
 
-        if (DEBUG) Log.d(TAG, "refreshPenState: StylusEnabled=" + isStylusEnabled + ", PenDetected=" + isPenDetected + ", PenDocked=" + isPenDocked);
-
-        if (isStylusEnabled || isPenDetected) {
+        if (isStylusEnabled) {
+             if (DEBUG) Log.d(TAG, "Stylus enabled: Setting refresh rate to 120Hz");
+            mRefreshRateUtils.setPenModeRefreshRate();
+        } else if (isPenDetected) {
             if (isPenDocked) {
                 if (DEBUG) Log.d(TAG, "Pen detected and docked: Setting refresh rate to 144Hz");
                 mRefreshRateUtils.setDefaultRefreshRate();
             } else {
-                if (DEBUG) Log.d(TAG, "Pen detected or stylus enabled: Setting refresh rate to 120Hz");
+                if (DEBUG) Log.d(TAG, "Pen detected but not docked: Setting refresh rate to 120Hz");
                 mRefreshRateUtils.setPenModeRefreshRate();
             }
         } else {
-            if (DEBUG) Log.d(TAG, "No pen detected or stylus disabled: Restoring default refresh rate");
+            if (DEBUG) Log.d(TAG, "No pen or stylus detected: Restoring default refresh rate");
             mRefreshRateUtils.setDefaultRefreshRate();
         }
-
-        // Force refresh rate update
-        enforceRefreshRateUpdate();
-        reinitializeInputDevices();
     }
 
     private static void setupFileObserver() {
@@ -101,11 +103,18 @@ public class PenUtils {
         mFileObserver.startWatching();
     }
 
+    // Check if the pen is docked (charging)
     private static boolean isPenDocked() {
-        String state = FileUtils.readOneLine(PEN_CHARGE_NODE);
-        return "1".equals(state); // 1 indicates charging (docked)
+        try (BufferedReader br = new BufferedReader(new FileReader(PEN_CHARGE_NODE))) {
+            String state = br.readLine();
+            return "1".equals(state); // 1 indicates charging (docked)
+        } catch (IOException e) {
+            Log.e(TAG, "Failed to read reverse_chg_mode node", e);
+            return false;
+        }
     }
 
+    // Detect if the Xiaomi pen is connected
     private static boolean isDeviceXiaomiPen() {
         for (int id : mInputManager.getInputDeviceIds()) {
             InputDevice inputDevice = mInputManager.getInputDevice(id);
@@ -134,18 +143,4 @@ public class PenUtils {
             refreshPenState();
         }
     };
-
-    private static void enforceRefreshRateUpdate() {
-        if (DEBUG) Log.d(TAG, "enforceRefreshRateUpdate: Forcing display refresh update");
-        DisplayManager displayManager = (DisplayManager) mContext.getSystemService(Context.DISPLAY_SERVICE);
-        if (displayManager != null) {
-            displayManager.recalculateRefreshRates();
-        }
-    }
-
-    private static void reinitializeInputDevices() {
-        if (DEBUG) Log.d(TAG, "reinitializeInputDevices: Re-registering input devices");
-        mInputManager.unregisterInputDeviceListener(mInputDeviceListener);
-        mInputManager.registerInputDeviceListener(mInputDeviceListener, null);
-    }
 }
