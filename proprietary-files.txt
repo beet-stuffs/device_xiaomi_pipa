@@ -1,4 +1,4 @@
-# Unpinned blobs from pipa_global-user RKQ1.211001.001 OS2.0.9.0.UMZMIXM user release-keys
+# Unpinned blobs from pipa_global-user RKQ1.211001.001 OS2.0.12.0.UMZMIXM user release-keys
 
 # ACDB
 vendor/etc/acdbdata/Forte/Forte_Bluetooth_cal.acdb:vendor/etc/acdbdata/Tutu/Tutu_Bluetooth_cal.acdb
@@ -118,7 +118,7 @@ vendor/lib64/libarcsoft_mf_superresolution.so
 vendor/lib64/libarcsoft_portrait_lighting.so
 vendor/lib64/libarcsoft_portrait_lighting_c.so
 vendor/lib64/libarcsoft_qnnhtp.so
-vendor/lib64/libarcsoft_super_night_raw.so;
+vendor/lib64/libarcsoft_super_night_raw.so
 vendor/lib64/libbeauty_face_interface.so
 vendor/lib64/libc++_shared.so
 vendor/lib64/libcamera_nn_stub.so
