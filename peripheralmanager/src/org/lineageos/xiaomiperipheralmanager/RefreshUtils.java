@@ -46,10 +46,6 @@ public final class RefreshUtils {
         float maxRate = Settings.System.getFloat(mContext.getContentResolver(), KEY_PEAK_REFRESH_RATE, 144f);
         float minRate = Settings.System.getFloat(mContext.getContentResolver(), KEY_MIN_REFRESH_RATE, 60f);
 
-        if (maxRate <= 120f) {
-            return;
-        }
-
         boolean penMode = mSharedPrefs.getBoolean(KEY_PEN_MODE, false);
 
         if (!penMode) {
@@ -60,7 +56,7 @@ public final class RefreshUtils {
                     .apply();
         }
 
-        // Always clamp when we're called and maxRate > 120
+        // When pen mode is active we force peak to 120 Hz, keeping min sane.
         maxRate = 120f;
         minRate = Math.min(minRate, 120f);
 
@@ -71,15 +67,9 @@ public final class RefreshUtils {
     protected void setDefaultRefreshRate() {
         float currentMinRate = Settings.System.getFloat(mContext.getContentResolver(), KEY_MIN_REFRESH_RATE, 60f);
         float currentMaxRate = Settings.System.getFloat(mContext.getContentResolver(), KEY_PEAK_REFRESH_RATE, 60f);
+        boolean penMode = mSharedPrefs.getBoolean(KEY_PEN_MODE, false);
 
-        // This means that smooth display is off and so we stay in 60hz refresh rate
-        if (currentMaxRate <= 60f) {
-            mSharedPrefs.edit()
-                    .putBoolean(KEY_PEN_MODE, false)
-                    // keep our snapshot in sync with what the user chose
-                    .putFloat(KEY_MIN_REFRESH_RATE, currentMinRate)
-                    .putFloat(KEY_PEAK_REFRESH_RATE, currentMaxRate)
-                    .apply();
+        if (!penMode) {
             return;
         }
 
